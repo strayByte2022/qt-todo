@@ -10,7 +10,7 @@
 #include <QMessageBox>
 #include <QCoreApplication>
 
-static const QString filePath = QCoreApplication::applicationDirPath() + "/tasks.json";
+// static const QString filePath = QCoreApplication::applicationDirPath() + "/tasks.json";
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -18,13 +18,16 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
+    QString dirPath = QCoreApplication::applicationDirPath();
+    QString filePath = dirPath + "/tasks.json";
+    this->filePath = filePath;
+
     //update greetings
     this->updateGreetings();
 
     connect(ui->addTaskButton, &QPushButton::clicked, this, &MainWindow::addTask);
     connect(ui->deleteTaskButton, &QPushButton::clicked, this, &MainWindow::deleteTask);
-    connect(ui->saveTaskButton, &QPushButton::clicked, this, &MainWindow::saveTasks);
-    connect(ui->loadTaskButton, &QPushButton::clicked, this, &MainWindow::loadTasks);
+    connect(ui->taskInputLineEdit, &QLineEdit::returnPressed, this, &MainWindow::addTask);
 
     //auto load tasks
     this->loadTasks();
@@ -42,6 +45,9 @@ void MainWindow::addTask(){
         item->setCheckState(Qt::Unchecked);
         ui->taskListWidget->addItem(item);
         ui->taskInputLineEdit->clear();
+
+        //auto save
+        this->saveTasks();
     }
     else{
         QMessageBox::warning(this, "Warning", "Task cannot be empty!");
@@ -49,10 +55,14 @@ void MainWindow::addTask(){
 }
 
 void MainWindow::deleteTask(){
-    QList<QListWidgetItem *> selectedItems = ui->taskListWidget->selectedItems();
-    for (QListWidgetItem *item : selectedItems) {
-        delete ui->taskListWidget->takeItem(ui->taskListWidget->row(item));
+    for(int i = ui->taskListWidget->count()-1; i >=0; --i){
+        QListWidgetItem *item = ui->taskListWidget->item(i);
+        if(item->checkState() == Qt::Checked){
+            delete ui->taskListWidget->takeItem(i);
+        }
     }
+
+    this -> saveTasks();
 }
 
 void MainWindow::saveTasks(){
@@ -70,7 +80,7 @@ void MainWindow::saveTasks(){
     if (file.open(QIODevice::WriteOnly)) {
         file.write(doc.toJson());
         file.close();
-        QMessageBox::information(this, "Success", "Tasks saved successfully!");
+        // QMessageBox::information(this, "Success", "Tasks saved successfully!");
     } else {
         QMessageBox::warning(this, "Error", "Could not save tasks.");
     }

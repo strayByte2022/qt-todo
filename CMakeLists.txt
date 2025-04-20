@@ -11,12 +11,14 @@ qt_add_executable(todo
     mainwindow.cpp
     mainwindow.h
     mainwindow.ui
+    resources.qrc
 )
 
 qt_add_translations(
     TARGETS todo
     TS_FILES todo_vi_VN.ts
 )
+
 
 target_link_libraries(todo
     PRIVATE
